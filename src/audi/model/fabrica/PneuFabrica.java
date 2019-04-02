@@ -5,9 +5,12 @@
  */
 package audi.model.fabrica;
 
+import audi.interfaces.ObservadorDeProducao;
 import audi.model.item.Pneu;
 import audi.model.item.Pneu;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,11 +19,15 @@ import java.util.logging.Logger;
  *
  * @author paulo
  */
-public class PneuFabrica implements Fabrica{
-    
-    ArrayList<Pneu> pneus;
-    
+public class PneuFabrica implements Fabrica {
+
+    LinkedList<Pneu> pneus;
+    private final List<ObservadorDeProducao> observadores = new ArrayList<>();
     Thread thread;
+
+    public PneuFabrica() {
+        pneus = new LinkedList<>();
+    }
 
     @Override
     public int getQuantidadePorVeiculo() {
@@ -36,11 +43,11 @@ public class PneuFabrica implements Fabrica{
     public int getEstoqueMaximo() {
         return 10;
     }
-    
-        public void produzirPneu() {
+
+    public synchronized void produzirPneu() {
         thread = new Thread() {
             @Override
-            public void run() {
+            public synchronized void run() {
                 try {
                     while (true) {
                         TimeUnit.SECONDS.sleep(getTempoDeProducao());
@@ -48,9 +55,15 @@ public class PneuFabrica implements Fabrica{
                             Pneu pneu = new Pneu();
                             pneus.add(pneu);
                             System.out.println("Produzi pneu");
+                            notificarObservadores();
                         } else {
                             System.out.println("Dormi");
-                            thread.wait();
+                            synchronized (this) {
+                                try {
+                                    thread.wait();
+                                } catch (InterruptedException ie) {
+                                }
+                            }
                         }
 
                     }
@@ -63,9 +76,23 @@ public class PneuFabrica implements Fabrica{
         thread.start();
     }
 
-    public void retirarPneu() {
-        this.pneus = (ArrayList<Pneu>) pneus.subList(0, 5);
-        this.thread.notify();
+    public synchronized void retirarPneu() throws InterruptedException {
+
+        System.out.println("Retirei pneu");
+        this.pneus.removeFirst();
+
+        thread.notifyAll();
+
     }
-    
+
+    @Override
+    public void notificarObservadores() {
+        for (ObservadorDeProducao odp : observadores) {
+            odp.notificarProducaoPneu(this);
+        }
+    }
+
+    public void adicionarObservador(ObservadorDeProducao obs) {
+        observadores.add(obs);
+    }
 }

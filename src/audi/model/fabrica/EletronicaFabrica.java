@@ -5,9 +5,12 @@
  */
 package audi.model.fabrica;
 
+import audi.interfaces.ObservadorDeProducao;
 import audi.model.item.Eletronica;
 import audi.model.item.Eletronica;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,12 +19,16 @@ import java.util.logging.Logger;
  *
  * @author paulo
  */
-public class EletronicaFabrica implements Fabrica{
-    
-    ArrayList<Eletronica> eletronicas;
-    
+public class EletronicaFabrica implements Fabrica {
+
+    LinkedList<Eletronica> eletronicas;
+    private final List<ObservadorDeProducao> observadores = new ArrayList<ObservadorDeProducao>();
+
     Thread thread;
-    
+
+    public EletronicaFabrica() {
+        eletronicas = new LinkedList<>();
+    }
 
     @Override
     public int getQuantidadePorVeiculo() {
@@ -35,12 +42,13 @@ public class EletronicaFabrica implements Fabrica{
 
     @Override
     public int getEstoqueMaximo() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return 8;
     }
-        public void produzirEletronica() {
+
+    public synchronized void produzirEletronica() {
         thread = new Thread() {
             @Override
-            public void run() {
+            public synchronized void run() {
                 try {
                     while (true) {
                         TimeUnit.SECONDS.sleep(getTempoDeProducao());
@@ -48,9 +56,15 @@ public class EletronicaFabrica implements Fabrica{
                             Eletronica eletronica = new Eletronica();
                             eletronicas.add(eletronica);
                             System.out.println("Produzi eletronica");
+                            notificarObservadores();
                         } else {
                             System.out.println("Dormi");
-                            thread.wait();
+                            synchronized (this) {
+                                try {
+                                    thread.wait();
+                                } catch (InterruptedException ie) {
+                                }
+                            }
                         }
 
                     }
@@ -63,10 +77,22 @@ public class EletronicaFabrica implements Fabrica{
         thread.start();
     }
 
-    public void retirarEletronica() {
-        this.eletronicas = (ArrayList<Eletronica>) eletronicas.subList(0, 5);
-        this.thread.notify();
+    public synchronized void retirarEletronica() throws InterruptedException {
+        System.out.println("Retirei eletronica");
+        this.eletronicas.removeFirst();
+        thread.notifyAll();
+
     }
-    
-    
+
+    @Override
+    public void notificarObservadores() {
+        for (ObservadorDeProducao odp : observadores) {
+            odp.notificarProducaoEletronica(this);
+        }
+    }
+
+    public void adicionarObservador(ObservadorDeProducao obs) {
+        observadores.add(obs);
+    }
+
 }

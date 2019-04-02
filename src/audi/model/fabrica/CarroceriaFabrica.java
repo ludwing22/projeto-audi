@@ -5,8 +5,11 @@
  */
 package audi.model.fabrica;
 
+import audi.interfaces.ObservadorDeProducao;
 import audi.model.item.Carroceria;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,8 +22,13 @@ public class CarroceriaFabrica implements Fabrica{
     
     Thread thread;
     
-    ArrayList<Carroceria> carrocerias;
+    LinkedList<Carroceria> carrocerias;
+    private final List<ObservadorDeProducao> observadores = new ArrayList<ObservadorDeProducao>();
 
+    public CarroceriaFabrica() {
+        carrocerias = new LinkedList<>();
+    }
+    
     @Override
     public int getQuantidadePorVeiculo() {
         return 1;
@@ -33,23 +41,28 @@ public class CarroceriaFabrica implements Fabrica{
 
     @Override
     public int getEstoqueMaximo() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return 6;
     }
     
-    public void produzirCarroceria() {
+    public synchronized void produzirCarroceria() {
         thread = new Thread() {
             @Override
-            public void run() {
+            public synchronized void run() {
                 try {
                     while (true) {
                         TimeUnit.SECONDS.sleep(getTempoDeProducao());
                         if (carrocerias.size() < getEstoqueMaximo()) {
                             Carroceria carro = new Carroceria();
                             carrocerias.add(carro);
-                            System.out.println("Produzi carro");
+                            System.out.println("Produzi carroceria");
+                            notificarObservadores();
                         } else {
                             System.out.println("Dormi");
-                            thread.wait();
+                            synchronized(this){
+                                try{
+                                    thread.wait();
+                                } catch(InterruptedException ie){}
+                            } 
                         }
 
                     }
@@ -62,9 +75,23 @@ public class CarroceriaFabrica implements Fabrica{
         thread.start();
     }
 
-    public void retirarCarroceria() {
-        this.carrocerias = (ArrayList<Carroceria>) carrocerias.subList(0, 5);
-        this.thread.notify();
+    public synchronized void retirarCarroceria() throws InterruptedException  {
+        System.out.println("Retirei Carroceria");
+        this.carrocerias.removeFirst();
+        thread.notifyAll();
+
+    }
+
+    
+    @Override
+    public void notificarObservadores() {
+        for (ObservadorDeProducao odp: observadores) {
+            odp.notificarProducaoCarroceria(this);
+        }
+    }
+    
+    public void adicionarObservador(ObservadorDeProducao obs) {
+        observadores.add(obs);
     }
     
 }

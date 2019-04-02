@@ -5,9 +5,12 @@
  */
 package audi.model.fabrica;
 
+import audi.interfaces.ObservadorDeProducao;
 import audi.model.item.Motor;
 import audi.model.item.Motor;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,15 +19,16 @@ import java.util.logging.Logger;
  *
  * @author paulo
  */
-public class MotorFabrica implements Fabrica{
-    
-    ArrayList<Motor> motores;
+public class MotorFabrica implements Fabrica {
+
+    LinkedList<Motor> motores;
+    private final List<ObservadorDeProducao> observadores = new ArrayList<ObservadorDeProducao>();
     Thread thread;
 
     public MotorFabrica() {
-        motores = new ArrayList<>();
+        motores = new LinkedList<>();
     }
-    
+
     @Override
     public int getQuantidadePorVeiculo() {
         return 1;
@@ -39,11 +43,11 @@ public class MotorFabrica implements Fabrica{
     public int getEstoqueMaximo() {
         return 10;
     }
-    
-        public void produzirMotor() {
+
+    public synchronized void produzirMotor() {
         thread = new Thread() {
             @Override
-            public void run() {
+            public synchronized void run() {
                 try {
                     while (true) {
                         TimeUnit.SECONDS.sleep(getTempoDeProducao());
@@ -51,9 +55,15 @@ public class MotorFabrica implements Fabrica{
                             Motor motor = new Motor();
                             motores.add(motor);
                             System.out.println("Produzi motor");
+                            notificarObservadores();
                         } else {
                             System.out.println("Dormi");
-                            thread.wait();
+                            synchronized (this) {
+                                try {
+                                    thread.wait();
+                                } catch (InterruptedException ie) {
+                                }
+                            }
                         }
 
                     }
@@ -66,8 +76,21 @@ public class MotorFabrica implements Fabrica{
         thread.start();
     }
 
-    public void retirarMotor() {
-        this.motores = (ArrayList<Motor>) motores.subList(0, 5);
-        this.thread.notify();
+    public synchronized void retirarMotor() throws InterruptedException {
+        System.out.println("Retirei motor");
+        this.motores.removeFirst();
+        thread.notifyAll();
+
+    }
+
+    @Override
+    public void notificarObservadores() {
+        for (ObservadorDeProducao odp : observadores) {
+            odp.notificarProducaoMotor(this);
+        }
+    }
+
+    public void adicionarObservador(ObservadorDeProducao obs) {
+        observadores.add(obs);
     }
 }

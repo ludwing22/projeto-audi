@@ -14,11 +14,11 @@ import java.util.ArrayList;
  * @author paulo
  */
 public class Carro {
-    private ArrayList<Banco> bancos;
-    private ArrayList<Carroceria> carrocerias;
-    private ArrayList<Eletronica> eletronica;
-    private ArrayList<Motor> motores;
-    private ArrayList<Pneu> pneus;
+    public ArrayList<Banco> bancos;
+    public ArrayList<Carroceria> carrocerias;
+    public ArrayList<Eletronica> eletronica;
+    public ArrayList<Motor> motores;
+    public ArrayList<Pneu> pneus;
 
     public Carro() {
         bancos = new ArrayList<>();
@@ -53,6 +53,23 @@ public class Carro {
 
     public void setPneus(ArrayList<Pneu> pneus) {
         this.pneus = pneus;
+    }
+    
+    public boolean ePossivelProduzirCarro (){
+        BancoFabrica bf = new BancoFabrica();
+        CarroceriaFabrica cf = new CarroceriaFabrica();
+        EletronicaFabrica ef = new EletronicaFabrica();
+        MotorFabrica mf = new MotorFabrica();
+        PneuFabrica pf = new PneuFabrica();
+        
+        if (this.bancos.size() == bf.getQuantidadePorVeiculo() &&
+                this.carrocerias.size() == cf.getQuantidadePorVeiculo() &&
+                this.eletronica.size() == ef.getQuantidadePorVeiculo() &&
+                this.motores.size() == mf.getQuantidadePorVeiculo() &&
+                this.pneus.size() == pf.getQuantidadePorVeiculo()) {
+            return true;
+        }
+        return false;
     }
     
 }

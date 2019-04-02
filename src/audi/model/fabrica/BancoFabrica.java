@@ -5,9 +5,12 @@
  */
 package audi.model.fabrica;
 
+import audi.interfaces.ObservadorDeProducao;
 import audi.model.item.Banco;
 import audi.model.item.Item;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,14 +19,15 @@ import java.util.logging.Logger;
  *
  * @author paulo
  */
-public class BancoFabrica implements Fabrica{
-    
-    private ArrayList<Banco> bancos;
-    
+public class BancoFabrica implements Fabrica {
+
+    private LinkedList<Banco> bancos;
+    private final List<ObservadorDeProducao> observadores = new ArrayList<ObservadorDeProducao>();
+
     Thread thread;
 
     public BancoFabrica() {
-        bancos = new ArrayList<>();
+        bancos = new LinkedList<>();
     }
 
     @Override
@@ -40,11 +44,11 @@ public class BancoFabrica implements Fabrica{
     public int getEstoqueMaximo() {
         return 10;
     }
-    
-    public void produzirBanco() {
+
+    public synchronized void produzirBanco() {
         thread = new Thread() {
             @Override
-            public void run() {
+            public synchronized void run() {
                 try {
                     while (true) {
                         TimeUnit.SECONDS.sleep(getTempoDeProducao());
@@ -52,9 +56,15 @@ public class BancoFabrica implements Fabrica{
                             Banco banco = new Banco();
                             bancos.add(banco);
                             System.out.println("Produzi banco");
+                            notificarObservadores();
                         } else {
                             System.out.println("Dormi");
-                            thread.wait();
+                            synchronized (this) {
+                                try {
+                                    thread.wait();
+                                } catch (InterruptedException ie) {
+                                }
+                            }
                         }
 
                     }
@@ -67,9 +77,22 @@ public class BancoFabrica implements Fabrica{
         thread.start();
     }
 
-    public void retirarBanco() {
-        this.bancos = (ArrayList<Banco>) bancos.subList(0, 5);
-        this.thread.notify();
+    public synchronized void retirarBanco() throws InterruptedException {
+        System.out.println("Retirei Banco");
+        this.bancos.removeFirst();
+        thread.notifyAll();
+    }
+
+    @Override
+    public void notificarObservadores() {
+
+        for (ObservadorDeProducao observadorDeProducao : observadores) {
+            observadorDeProducao.notificarProducaoBanco(this);
+        }
+    }
+
+    public void adicionarObservador(ObservadorDeProducao obs) {
+        observadores.add(obs);
     }
 
 }

@@ -5,6 +5,7 @@
  */
 package audi.model.fabrica;
 
+import audi.interfaces.ObservadorDeProducao;
 import audi.model.item.Item;
 import java.util.ArrayList;
 
@@ -16,4 +17,6 @@ public interface Fabrica {
     public int getQuantidadePorVeiculo();
     public int getTempoDeProducao();
     public int getEstoqueMaximo();
+    public void notificarObservadores();
+    public void adicionarObservador(ObservadorDeProducao obs);
 }

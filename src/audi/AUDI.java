@@ -18,7 +18,7 @@ public class AUDI {
      */
     public static void main(String[] args) {
         CarroFabrica cf = new CarroFabrica();
-        cf.produzirCarro();
+        cf.iniciarFabricaCarro();
     }
     
 }
