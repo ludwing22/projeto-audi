@@ -62,14 +62,11 @@ public class Carro {
         MotorFabrica mf = new MotorFabrica();
         PneuFabrica pf = new PneuFabrica();
         
-        if (this.bancos.size() == bf.getQuantidadePorVeiculo() &&
-                this.carrocerias.size() == cf.getQuantidadePorVeiculo() &&
-                this.eletronica.size() == ef.getQuantidadePorVeiculo() &&
-                this.motores.size() == mf.getQuantidadePorVeiculo() &&
-                this.pneus.size() == pf.getQuantidadePorVeiculo()) {
-            return true;
-        }
-        return false;
+        return this.bancos.size() >= bf.getQuantidadePorVeiculo() &&
+                this.carrocerias.size() >= cf.getQuantidadePorVeiculo() &&
+                this.eletronica.size() >= ef.getQuantidadePorVeiculo() &&
+                this.motores.size() >= mf.getQuantidadePorVeiculo() &&
+                this.pneus.size() >= pf.getQuantidadePorVeiculo();
     }
     
 }

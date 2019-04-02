@@ -50,14 +50,15 @@ public class CarroceriaFabrica implements Fabrica{
             public synchronized void run() {
                 try {
                     while (true) {
-                        TimeUnit.SECONDS.sleep(getTempoDeProducao());
+                        
                         if (carrocerias.size() < getEstoqueMaximo()) {
+                            TimeUnit.SECONDS.sleep(getTempoDeProducao());
                             Carroceria carro = new Carroceria();
                             carrocerias.add(carro);
-                            System.out.println("Produzi carroceria");
+                            System.out.println("Produzi carroceria:"+ carrocerias.size() + " /" + getEstoqueMaximo());
                             notificarObservadores();
                         } else {
-                            System.out.println("Dormi");
+                            System.out.println("Dormi Fabrica Carroceria");
                             synchronized(this){
                                 try{
                                     thread.wait();
@@ -78,7 +79,10 @@ public class CarroceriaFabrica implements Fabrica{
     public synchronized void retirarCarroceria() throws InterruptedException  {
         System.out.println("Retirei Carroceria");
         this.carrocerias.removeFirst();
-        thread.notifyAll();
+        
+        if(thread.isInterrupted()){
+            thread.notifyAll();   
+        }
 
     }
 

@@ -51,14 +51,15 @@ public class EletronicaFabrica implements Fabrica {
             public synchronized void run() {
                 try {
                     while (true) {
-                        TimeUnit.SECONDS.sleep(getTempoDeProducao());
+                        
                         if (eletronicas.size() < getEstoqueMaximo()) {
+                            TimeUnit.SECONDS.sleep(getTempoDeProducao());
                             Eletronica eletronica = new Eletronica();
                             eletronicas.add(eletronica);
-                            System.out.println("Produzi eletronica");
+                            System.out.println("Produzi eletronica:"+ eletronicas.size() + " /" + getEstoqueMaximo());
                             notificarObservadores();
                         } else {
-                            System.out.println("Dormi");
+                            System.out.println("Dormi fabrica de eletronica");
                             synchronized (this) {
                                 try {
                                     thread.wait();
@@ -80,7 +81,9 @@ public class EletronicaFabrica implements Fabrica {
     public synchronized void retirarEletronica() throws InterruptedException {
         System.out.println("Retirei eletronica");
         this.eletronicas.removeFirst();
-        thread.notifyAll();
+        if(thread.isInterrupted()){
+            thread.notifyAll();   
+        }
 
     }
 

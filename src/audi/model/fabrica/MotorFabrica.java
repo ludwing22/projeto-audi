@@ -50,14 +50,15 @@ public class MotorFabrica implements Fabrica {
             public synchronized void run() {
                 try {
                     while (true) {
-                        TimeUnit.SECONDS.sleep(getTempoDeProducao());
+                        
                         if (motores.size() < getEstoqueMaximo()) {
+                            TimeUnit.SECONDS.sleep(getTempoDeProducao());
                             Motor motor = new Motor();
                             motores.add(motor);
-                            System.out.println("Produzi motor");
+                            System.out.println("Produzi motor:"+ motores.size() + " /" + getEstoqueMaximo());
                             notificarObservadores();
                         } else {
-                            System.out.println("Dormi");
+                            System.out.println("Dormi fabrica motores");
                             synchronized (this) {
                                 try {
                                     thread.wait();
@@ -79,7 +80,9 @@ public class MotorFabrica implements Fabrica {
     public synchronized void retirarMotor() throws InterruptedException {
         System.out.println("Retirei motor");
         this.motores.removeFirst();
-        thread.notifyAll();
+        if(thread.isInterrupted()){
+            thread.notifyAll();   
+        }
 
     }
 

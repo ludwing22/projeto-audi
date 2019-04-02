@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 public class BancoFabrica implements Fabrica {
 
-    private LinkedList<Banco> bancos;
+    public LinkedList<Banco> bancos;
     private final List<ObservadorDeProducao> observadores = new ArrayList<ObservadorDeProducao>();
 
     Thread thread;
@@ -51,14 +51,15 @@ public class BancoFabrica implements Fabrica {
             public synchronized void run() {
                 try {
                     while (true) {
-                        TimeUnit.SECONDS.sleep(getTempoDeProducao());
+                        
                         if (bancos.size() < getEstoqueMaximo()) {
+                            TimeUnit.SECONDS.sleep(getTempoDeProducao());
                             Banco banco = new Banco();
                             bancos.add(banco);
-                            System.out.println("Produzi banco");
+                            System.out.println("Produzi banco :"+ bancos.size() + " /" + getEstoqueMaximo());
                             notificarObservadores();
                         } else {
-                            System.out.println("Dormi");
+                            System.out.println("Dormi fabrica banco");
                             synchronized (this) {
                                 try {
                                     thread.wait();
@@ -80,7 +81,9 @@ public class BancoFabrica implements Fabrica {
     public synchronized void retirarBanco() throws InterruptedException {
         System.out.println("Retirei Banco");
         this.bancos.removeFirst();
-        thread.notifyAll();
+        if(thread.isInterrupted()){
+            thread.notifyAll();   
+        }
     }
 
     @Override

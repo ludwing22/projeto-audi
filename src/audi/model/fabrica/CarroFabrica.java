@@ -79,7 +79,6 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
                     pf.produzirPneu();
 
                     while (true) {
-                        Carro carro = new Carro();
                         produzirCarro(thread);
 
                     }
@@ -94,13 +93,15 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
 
     public synchronized void produzirCarro(Thread thread) throws InterruptedException {
         if (carro.ePossivelProduzirCarro()) {
+            imprimirCoisasCarro();
             TimeUnit.SECONDS.sleep(this.getTempoDeProducao());
             if (carros.size() < getEstoqueMaximo()) {
                 carros.add(this.carro);
                 this.carro = new Carro();
-                System.out.println("Produzi carro");
+                System.out.println("*** Produzi carro:" + this.carros.size() + " /" + getEstoqueMaximo());
+                obterItensOutrasFabricas();
             } else {
-                System.out.println("Dormi");
+                System.out.println("Dormi fabrica carro");
                 thread.wait();
             }
         }
@@ -108,31 +109,31 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
     }
 
     public synchronized void obterItensOutrasFabricas() throws InterruptedException {
-        if (carro.bancos.size() < bf.getQuantidadePorVeiculo() && carro.bancos.size() > 0) {
+        if (carro.bancos.size() < bf.getQuantidadePorVeiculo() && bf.bancos.size() > 0) {
             bf.retirarBanco();
             carro.bancos.add(new Banco());
         }
-        if (carro.carrocerias.size() < cf.getQuantidadePorVeiculo() && carro.carrocerias.size() > 0) {
+        if (carro.carrocerias.size() < cf.getQuantidadePorVeiculo() && cf.carrocerias.size() > 0) {
             cf.retirarCarroceria();
             carro.carrocerias.add(new Carroceria());
         }
-        if (carro.eletronica.size() < ef.getQuantidadePorVeiculo() && carro.eletronica.size() > 0) {
+        if (carro.eletronica.size() < ef.getQuantidadePorVeiculo() && ef.eletronicas.size() > 0) {
             ef.retirarEletronica();
             carro.eletronica.add(new Eletronica());
         }
-        if (carro.motores.size() < mf.getQuantidadePorVeiculo() && carro.motores.size() > 0) {
+        if (carro.motores.size() < mf.getQuantidadePorVeiculo() && mf.motores.size() > 0) {
             mf.retirarMotor();
             carro.motores.add(new Motor());
         }
-        if (carro.pneus.size() < pf.getQuantidadePorVeiculo() && carro.pneus.size() > 0) {
+        if (carro.pneus.size() < pf.getQuantidadePorVeiculo() && pf.pneus.size() > 0) {
             pf.retirarPneu();
             carro.pneus.add(new Pneu());
         }
-        
+
         produzirCarro(this.thread);
     }
 
-    public void retirarCarro() {
+    public synchronized void retirarCarro() {
         this.carros = (ArrayList<Carro>) carros.subList(0, 5);
         this.thread.notify();
     }
@@ -152,12 +153,11 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
             carro.bancos.add(new Banco());
-        } else {
-            try {
-                produzirCarro(this.thread);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        }
+        try {
+            produzirCarro(this.thread);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -172,13 +172,13 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
             carro.carrocerias.add(new Carroceria());
-        } else {
-            try {
-                produzirCarro(this.thread);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
+        try {
+            produzirCarro(this.thread);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     @Override
@@ -191,13 +191,13 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
             carro.eletronica.add(new Eletronica());
-        } else {
-            try {
-                produzirCarro(this.thread);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
+        try {
+            produzirCarro(this.thread);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     @Override
@@ -210,13 +210,13 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
             carro.motores.add(new Motor());
-        } else {
-            try {
-                produzirCarro(this.thread);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
+        try {
+            produzirCarro(this.thread);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     @Override
@@ -229,18 +229,28 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
             carro.pneus.add(new Pneu());
-        } else {
-            try {
-                produzirCarro(this.thread);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
+        try {
+            produzirCarro(this.thread);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     @Override
     public void adicionarObservador(ObservadorDeProducao obs) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    public void imprimirCoisasCarro(){
+        System.out.println(carro.bancos.size() + " /"+
+                carro.carrocerias.size() + " /"+
+                        carro.eletronica.size() + " /"+
+                                carro.motores.size() + " /"+
+                                        carro.pneus.size() + " /"+
+                carro.bancos.size() + " /"
+        );
     }
 
 }

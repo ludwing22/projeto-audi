@@ -50,14 +50,15 @@ public class PneuFabrica implements Fabrica {
             public synchronized void run() {
                 try {
                     while (true) {
-                        TimeUnit.SECONDS.sleep(getTempoDeProducao());
+                        
                         if (pneus.size() < getEstoqueMaximo()) {
+                            TimeUnit.SECONDS.sleep(getTempoDeProducao());
                             Pneu pneu = new Pneu();
                             pneus.add(pneu);
-                            System.out.println("Produzi pneu");
+                            System.out.println("Produzi pneu:"+ pneus.size() + " /" + getEstoqueMaximo());
                             notificarObservadores();
                         } else {
-                            System.out.println("Dormi");
+                            System.out.println("Dormi fabrica de pneu");
                             synchronized (this) {
                                 try {
                                     thread.wait();
@@ -81,7 +82,9 @@ public class PneuFabrica implements Fabrica {
         System.out.println("Retirei pneu");
         this.pneus.removeFirst();
 
-        thread.notifyAll();
+        if(thread.isInterrupted()){
+            thread.notifyAll();   
+        }
 
     }
 
