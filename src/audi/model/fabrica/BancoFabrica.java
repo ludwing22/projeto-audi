@@ -32,17 +32,17 @@ public class BancoFabrica implements Fabrica {
 
     @Override
     public int getQuantidadePorVeiculo() {
-        return 1;
+        return 5;
     }
 
     @Override
     public int getTempoDeProducao() {
-        return 12;
+        return 6;
     }
 
     @Override
     public int getEstoqueMaximo() {
-        return 10;
+        return 25;
     }
 
     public synchronized void produzirBanco() {
@@ -53,9 +53,12 @@ public class BancoFabrica implements Fabrica {
                     while (true) {
                         
                         if (bancos.size() < getEstoqueMaximo()) {
-                            TimeUnit.SECONDS.sleep(getTempoDeProducao());
-                            Banco banco = new Banco();
-                            bancos.add(banco);
+                            for (int i = 0; i < getQuantidadePorVeiculo() ; i++){
+                                TimeUnit.SECONDS.sleep(getTempoDeProducao());
+                                Banco banco = new Banco();
+                                bancos.add(banco);
+                            }
+                            
                             System.out.println("Produzi banco :"+ bancos.size() + " /" + getEstoqueMaximo());
                             notificarObservadores();
                         } else {
@@ -81,8 +84,11 @@ public class BancoFabrica implements Fabrica {
     public synchronized void retirarBanco() throws InterruptedException {
         System.out.println("Retirei Banco");
         this.bancos.removeFirst();
-        if(thread.isInterrupted()){
-            thread.notifyAll();   
+        
+        if (thread.getState() == Thread.State.WAITING){
+            synchronized(thread){
+                thread.notify(); 
+            }
         }
     }
 

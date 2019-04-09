@@ -32,12 +32,12 @@ public class EletronicaFabrica implements Fabrica {
 
     @Override
     public int getQuantidadePorVeiculo() {
-        return 4;
+        return 1;
     }
 
     @Override
     public int getTempoDeProducao() {
-        return 3;
+        return 7;
     }
 
     @Override
@@ -81,10 +81,12 @@ public class EletronicaFabrica implements Fabrica {
     public synchronized void retirarEletronica() throws InterruptedException {
         System.out.println("Retirei eletronica");
         this.eletronicas.removeFirst();
-        if(thread.isInterrupted()){
-            thread.notifyAll();   
+        
+        if (thread.getState() == Thread.State.WAITING){
+            synchronized(thread){
+                thread.notify(); 
+            }
         }
-
     }
 
     @Override

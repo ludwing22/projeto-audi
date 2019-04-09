@@ -28,11 +28,12 @@ public class Carro {
         pneus = new ArrayList<>();
     }
 
-    public Carro(ArrayList<Banco> bancos, ArrayList<Carroceria> carrocerias, ArrayList<Motor> motores, ArrayList<Pneu> pneus) {
+    public Carro(ArrayList<Banco> bancos, ArrayList<Carroceria> carrocerias, ArrayList<Motor> motores, ArrayList<Pneu> pneus, ArrayList<Eletronica> eletronicas) {
         this.bancos = bancos;
         this.carrocerias = carrocerias;
         this.motores = motores;
         this.pneus = pneus;
+        this.eletronica = eletronicas;
     }
 
     public void setBancos(ArrayList<Banco> bancos) {

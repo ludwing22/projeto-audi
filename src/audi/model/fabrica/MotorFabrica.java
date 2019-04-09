@@ -36,7 +36,7 @@ public class MotorFabrica implements Fabrica {
 
     @Override
     public int getTempoDeProducao() {
-        return 5;
+        return 12;
     }
 
     @Override
@@ -78,12 +78,15 @@ public class MotorFabrica implements Fabrica {
     }
 
     public synchronized void retirarMotor() throws InterruptedException {
-        System.out.println("Retirei motor");
+        
         this.motores.removeFirst();
-        if(thread.isInterrupted()){
-            thread.notifyAll();   
+        System.out.println("Retirei motor: " + this.motores.size() + this.getEstoqueMaximo());
+        
+        if (thread.getState() == Thread.State.WAITING){
+            synchronized(thread){
+                thread.notify(); 
+            }
         }
-
     }
 
     @Override

@@ -6,7 +6,7 @@
 package audi;
 
 import audi.model.fabrica.CarroFabrica;
-
+import audi.view.AudiInterface;
 /**
  *
  * @author paulo
@@ -17,7 +17,9 @@ public class AUDI {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        CarroFabrica cf = new CarroFabrica();
+        AudiInterface i = new AudiInterface();
+        
+        CarroFabrica cf = new CarroFabrica(i);
         cf.iniciarFabricaCarro();
     }
     

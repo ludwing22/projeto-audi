@@ -36,12 +36,12 @@ public class CarroceriaFabrica implements Fabrica{
 
     @Override
     public int getTempoDeProducao() {
-        return 3;
+        return 15;
     }
 
     @Override
     public int getEstoqueMaximo() {
-        return 6;
+        return 20;
     }
     
     public synchronized void produzirCarroceria() {
@@ -80,10 +80,11 @@ public class CarroceriaFabrica implements Fabrica{
         System.out.println("Retirei Carroceria");
         this.carrocerias.removeFirst();
         
-        if(thread.isInterrupted()){
-            thread.notifyAll();   
+        if (thread.getState() == Thread.State.WAITING){
+            synchronized(thread){
+                thread.notify(); 
+            }
         }
-
     }
 
     
