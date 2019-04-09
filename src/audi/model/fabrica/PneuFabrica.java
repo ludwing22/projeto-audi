@@ -86,9 +86,9 @@ public class PneuFabrica implements Fabrica {
         System.out.println("Retirei pneu");
         this.pneus.removeFirst();
 
-        if (thread.getState() == Thread.State.WAITING){
-            synchronized(thread){
-                thread.notify(); 
+        if (thread.getState() == Thread.State.WAITING) {
+            synchronized (thread) {
+                thread.notify();
             }
         }
     }

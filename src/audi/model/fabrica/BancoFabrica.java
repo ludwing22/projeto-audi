@@ -86,9 +86,7 @@ public class BancoFabrica implements Fabrica {
         this.bancos.removeFirst();
         
         if (thread.getState() == Thread.State.WAITING){
-            synchronized(thread){
-                thread.notify(); 
-            }
+            thread.notifyAll(); 
         }
     }
 

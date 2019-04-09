@@ -19,6 +19,10 @@ public class AudiInterface extends javax.swing.JFrame {
         setVisible(true);
     }
     
+    public void setVelocidadeProducao(long velocidade){
+        vel.setText(velocidade + "Carros/h");
+    }
+    
     public void setQTDCaminhao (int q, String s){
         PBCaminhao.setValue(q);
         PBCaminhao.setString(s);
@@ -98,8 +102,10 @@ public class AudiInterface extends javax.swing.JFrame {
         RBEletronicos = new javax.swing.JRadioButton();
         PBProducaoEletronicos = new javax.swing.JProgressBar();
         jSeparator5 = new javax.swing.JSeparator();
-        jPanel2 = new javax.swing.JPanel();
+        velProducao = new javax.swing.JPanel();
         jSeparator6 = new javax.swing.JSeparator();
+        labelVelProducao = new javax.swing.JLabel();
+        vel = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         PBCaminhao = new javax.swing.JProgressBar();
 
@@ -164,21 +170,39 @@ public class AudiInterface extends javax.swing.JFrame {
         PBProducaoEletronicos.setString("0/8");
         PBProducaoEletronicos.setStringPainted(true);
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        labelVelProducao.setText("Velocidade de Produção");
+
+        vel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                velActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout velProducaoLayout = new javax.swing.GroupLayout(velProducao);
+        velProducao.setLayout(velProducaoLayout);
+        velProducaoLayout.setHorizontalGroup(
+            velProducaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(velProducaoLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jSeparator6, javax.swing.GroupLayout.DEFAULT_SIZE, 704, Short.MAX_VALUE)
+                .addGroup(velProducaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jSeparator6, javax.swing.GroupLayout.DEFAULT_SIZE, 704, Short.MAX_VALUE)
+                    .addGroup(velProducaoLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(labelVelProducao)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(vel, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(92, 92, 92)
+        velProducaoLayout.setVerticalGroup(
+            velProducaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(velProducaoLayout.createSequentialGroup()
+                .addGap(57, 57, 57)
+                .addGroup(velProducaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelVelProducao)
+                    .addComponent(vel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addComponent(jSeparator6, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(26, Short.MAX_VALUE))
+                .addContainerGap(23, Short.MAX_VALUE))
         );
 
         jLabel6.setText("Caminhão");
@@ -196,7 +220,7 @@ public class AudiInterface extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(velProducao, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jSeparator1)
                     .addComponent(jSeparator2)
                     .addComponent(jSeparator3)
@@ -293,7 +317,7 @@ public class AudiInterface extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(PBCaminhao, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(velProducao, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         PBProducaoMotor.getAccessibleContext().setAccessibleName("");
@@ -323,6 +347,10 @@ public class AudiInterface extends javax.swing.JFrame {
     private void RBCarroceriaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RBCarroceriaActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_RBCarroceriaActionPerformed
+
+    private void velActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_velActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_velActionPerformed
 
     /**
      * @param args the command line arguments
@@ -378,12 +406,14 @@ public class AudiInterface extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSeparator jSeparator6;
+    private javax.swing.JLabel labelVelProducao;
+    private javax.swing.JTextField vel;
+    private javax.swing.JPanel velProducao;
     // End of variables declaration//GEN-END:variables
 }

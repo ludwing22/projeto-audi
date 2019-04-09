@@ -35,6 +35,8 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
     private MotorFabrica mf;
     private PneuFabrica pf;
     private AudiInterface audii;
+    private long tempoInicio;
+
     public CarroFabrica(AudiInterface i) {
         carros = new ArrayList<>();
         carro = new Carro();
@@ -74,6 +76,7 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
             @Override
             public synchronized void run() {
                 try {
+                    tempoInicio = System.currentTimeMillis();
                     bf.produzirBanco();
                     cf.produzirCarroceria();
                     ef.produzirEletronica();
@@ -92,6 +95,15 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
         thread.start();
     }
 
+    private void calcularTempoProducao() {
+        long tempoProducao = (System.currentTimeMillis()-tempoInicio)/1000;
+        long producaoPorHora = 3600/tempoProducao;
+        audii.setVelocidadeProducao(producaoPorHora);
+        System.out.println("$$$$$$$ Tempo Total: "+ tempoProducao);
+        System.out.println("$$$$$$$ `Producao por hora: "+ producaoPorHora);
+        tempoInicio = System.currentTimeMillis();
+    }
+    
     public synchronized void produzirCarro(Thread thread) throws InterruptedException {
         if (carro.ePossivelProduzirCarro()) {
             imprimirCoisasCarro();
@@ -99,37 +111,61 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
             if (carros.size() < getEstoqueMaximo()) {
                 carros.add(this.carro);
                 this.carro = new Carro();
+                calcularTempoProducao();
                 System.out.println("*** Produzi carro:" + this.carros.size() + " /" + getEstoqueMaximo());
-                audii.setQTDCaminhao(this.carros.size()*100/getEstoqueMaximo(), this.carros.size() + " / " + getEstoqueMaximo());
+                audii.setQTDCaminhao(this.carros.size() * 100 / getEstoqueMaximo(), this.carros.size() + " / " + getEstoqueMaximo());
                 obterItensOutrasFabricas();
-            } else {
-               carros.removeAll(carros);
-                
+
+                if (carros.size() >= getEstoqueMaximo()) {
+                    TimeUnit.SECONDS.sleep(1);
+                    carros.removeAll(carros);
+                }
+
             }
         }
 
     }
 
     public synchronized void obterItensOutrasFabricas() throws InterruptedException {
-        if (carro.bancos.size() <= bf.getQuantidadePorVeiculo() && bf.bancos.size() > 0) {
+        updateItensInterface();
+        if (carro.bancos.size() <= bf.getQuantidadePorVeiculo() && bf.bancos.size() >= bf.getQuantidadePorVeiculo()) {
             bf.retirarBanco();
             carro.bancos.add(new Banco());
+            bf.retirarBanco();
+            carro.bancos.add(new Banco());
+            bf.retirarBanco();
+            carro.bancos.add(new Banco());
+            bf.retirarBanco();
+            carro.bancos.add(new Banco());
+            bf.retirarBanco();
+            carro.bancos.add(new Banco());
+            updateItensInterface();
         }
         if (carro.carrocerias.size() <= cf.getQuantidadePorVeiculo() && cf.carrocerias.size() > 0) {
             cf.retirarCarroceria();
             carro.carrocerias.add(new Carroceria());
+            updateItensInterface();
         }
         if (carro.eletronica.size() <= ef.getQuantidadePorVeiculo() && ef.eletronicas.size() > 0) {
             ef.retirarEletronica();
             carro.eletronica.add(new Eletronica());
+            updateItensInterface();
         }
         if (carro.motores.size() <= mf.getQuantidadePorVeiculo() && mf.motores.size() > 0) {
             mf.retirarMotor();
             carro.motores.add(new Motor());
+            updateItensInterface();
         }
-        if (carro.pneus.size() < pf.getQuantidadePorVeiculo() && pf.pneus.size() > 0) {
+        if (carro.pneus.size() < pf.getQuantidadePorVeiculo() && pf.pneus.size() > pf.getQuantidadePorVeiculo()) {
             pf.retirarPneu();
             carro.pneus.add(new Pneu());
+            pf.retirarPneu();
+            carro.pneus.add(new Pneu());
+            pf.retirarPneu();
+            carro.pneus.add(new Pneu());
+            pf.retirarPneu();
+            carro.pneus.add(new Pneu());
+            updateItensInterface();
         }
 
         produzirCarro(this.thread);
@@ -145,17 +181,25 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    private void updateItensInterface() {
+        audii.setEstoqueBancos(bf.bancos.size() * 100 / bf.getEstoqueMaximo(), bf.bancos.size() + " / " + bf.getEstoqueMaximo());
+        audii.setEstoqueCarroceria(cf.carrocerias.size() * 100 / cf.getEstoqueMaximo(), cf.carrocerias.size() + " / " + cf.getEstoqueMaximo());
+        audii.setEstoqueEletronicos(ef.eletronicas.size() * 100 / ef.getEstoqueMaximo(), ef.eletronicas.size() + " / " + ef.getEstoqueMaximo());
+        audii.setEstoqueMotores(mf.motores.size() * 100 / mf.getEstoqueMaximo(), mf.motores.size() + " / " + mf.getEstoqueMaximo());
+        audii.setEstoquePneus(pf.pneus.size() * 100 / pf.getEstoqueMaximo(), pf.pneus.size() + " / " + pf.getEstoqueMaximo());
+    }
+
     @Override
     public synchronized void notificarProducaoBanco(BancoFabrica bf) {
-        audii.setEstoqueBancos(bf.bancos.size()*100/bf.getEstoqueMaximo(), bf.bancos.size() + " / " + bf.getEstoqueMaximo());
-        if ( bf.bancos.size() >= bf.getQuantidadePorVeiculo() && carro.bancos.size() < bf.getQuantidadePorVeiculo()) {
+        updateItensInterface();
+        if (bf.bancos.size() >= bf.getQuantidadePorVeiculo() && carro.bancos.size() < bf.getQuantidadePorVeiculo()) {
             try {
                 bf.retirarBanco();
                 bf.retirarBanco();
                 bf.retirarBanco();
                 bf.retirarBanco();
                 bf.retirarBanco();
-                audii.setEstoqueBancos(bf.bancos.size()*100/bf.getEstoqueMaximo(), bf.bancos.size() + " / " + bf.getEstoqueMaximo());
+                updateItensInterface();
             } catch (InterruptedException ex) {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -165,12 +209,12 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
             carro.bancos.add(new Banco());
             carro.bancos.add(new Banco());
         }
-        
+
         if (bf.bancos.size() == bf.getEstoqueMaximo()) {
             audii.selectRBBancos(false);
-        }
-        else
+        } else {
             audii.selectRBBancos(true);
+        }
         try {
             produzirCarro(this.thread);
         } catch (InterruptedException ex) {
@@ -181,25 +225,24 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
 
     @Override
     public synchronized void notificarProducaoCarroceria(CarroceriaFabrica cf) {
-        audii.setEstoqueCarroceria(cf.carrocerias.size()*100/cf.getEstoqueMaximo(), cf.carrocerias.size() + " / " + cf.getEstoqueMaximo());
-                    
+        updateItensInterface();
+
         if (carro.carrocerias.size() < cf.getQuantidadePorVeiculo()) {
             try {
                 cf.retirarCarroceria();
-                audii.setEstoqueCarroceria(cf.carrocerias.size()*100/cf.getEstoqueMaximo(), cf.carrocerias.size() + " / " + cf.getEstoqueMaximo());
-        
+                updateItensInterface();
+
             } catch (InterruptedException ex) {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
             carro.carrocerias.add(new Carroceria());
         }
-        
-        
+
         if (cf.carrocerias.size() == cf.getEstoqueMaximo()) {
             audii.selectRBCarroceria(false);
-        }
-        else
+        } else {
             audii.selectRBCarroceria(true);
+        }
         try {
             produzirCarro(this.thread);
         } catch (InterruptedException ex) {
@@ -210,24 +253,24 @@ public class CarroFabrica implements Fabrica, ObservadorDeProducao {
 
     @Override
     public synchronized void notificarProducaoEletronica(EletronicaFabrica ef) {
-audii.setEstoqueEletronicos(ef.eletronicas.size()*100/ef.getEstoqueMaximo(), ef.eletronicas.size() + " / " + ef.getEstoqueMaximo());
-                    
+        updateItensInterface();
+
         if (carro.eletronica.size() < ef.getQuantidadePorVeiculo()) {
             try {
                 ef.retirarEletronica();
-                audii.setEstoqueEletronicos(ef.eletronicas.size()*100/ef.getEstoqueMaximo(), ef.eletronicas.size() + " / " + ef.getEstoqueMaximo());
-                    
+                updateItensInterface();
+
             } catch (InterruptedException ex) {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
             carro.eletronica.add(new Eletronica());
         }
-        
+
         if (ef.eletronicas.size() == ef.getEstoqueMaximo()) {
             audii.selectRBEletronicas(false);
-        }
-        else
+        } else {
             audii.selectRBEletronicas(true);
+        }
         try {
             produzirCarro(this.thread);
         } catch (InterruptedException ex) {
@@ -238,46 +281,45 @@ audii.setEstoqueEletronicos(ef.eletronicas.size()*100/ef.getEstoqueMaximo(), ef.
 
     @Override
     public synchronized void notificarProducaoMotor(MotorFabrica mf) {
-        audii.setEstoqueMotores(mf.motores.size()*100/mf.getEstoqueMaximo(), mf.motores.size() + " / " + mf.getEstoqueMaximo());
-                    
+        updateItensInterface();
+
         if (carro.motores.size() < mf.getQuantidadePorVeiculo()) {
             try {
                 mf.retirarMotor();
-                audii.setEstoqueMotores(mf.motores.size()*100/mf.getEstoqueMaximo(), mf.motores.size() + " / " + mf.getEstoqueMaximo());
-                    
+                updateItensInterface();
+
             } catch (InterruptedException ex) {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
             carro.motores.add(new Motor());
-            
+
         }
-        
+
         if (mf.motores.size() == mf.getEstoqueMaximo()) {
             audii.selectRBMotores(false);
-        }
-        else
+        } else {
             audii.selectRBMotores(true);
+        }
         try {
             produzirCarro(this.thread);
         } catch (InterruptedException ex) {
             Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
 
     }
 
     @Override
     public synchronized void notificarProducaoPneu(PneuFabrica pf) {
-audii.setEstoquePneus(pf.pneus.size()*100/pf.getEstoqueMaximo(), pf.pneus.size() + " / " + pf.getEstoqueMaximo());
-                    
-        if ( pf.pneus.size() >= pf.getQuantidadePorVeiculo() && carro.pneus.size() < pf.getQuantidadePorVeiculo()) {
+        updateItensInterface();
+
+        if (pf.pneus.size() >= pf.getQuantidadePorVeiculo() && carro.pneus.size() < pf.getQuantidadePorVeiculo()) {
             try {
                 pf.retirarPneu();
                 pf.retirarPneu();
                 pf.retirarPneu();
                 pf.retirarPneu();
-                audii.setEstoquePneus(pf.pneus.size()*100/pf.getEstoqueMaximo(), pf.pneus.size() + " / " + pf.getEstoqueMaximo());
-                    
+                updateItensInterface();
+
             } catch (InterruptedException ex) {
                 Logger.getLogger(CarroFabrica.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -286,12 +328,12 @@ audii.setEstoquePneus(pf.pneus.size()*100/pf.getEstoqueMaximo(), pf.pneus.size()
             carro.pneus.add(new Pneu());
             carro.pneus.add(new Pneu());
         }
-        
+
         if (pf.pneus.size() == pf.getEstoqueMaximo()) {
             audii.selectRBPneus(false);
-        }
-        else
+        } else {
             audii.selectRBPneus(true);
+        }
         try {
             produzirCarro(this.thread);
         } catch (InterruptedException ex) {
@@ -304,14 +346,14 @@ audii.setEstoquePneus(pf.pneus.size()*100/pf.getEstoqueMaximo(), pf.pneus.size()
     public void adicionarObservador(ObservadorDeProducao obs) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
-    public void imprimirCoisasCarro(){
-        System.out.println(carro.bancos.size() + " /"+
-                carro.carrocerias.size() + " /"+
-                        carro.eletronica.size() + " /"+
-                                carro.motores.size() + " /"+
-                                        carro.pneus.size() + " /"+
-                carro.bancos.size() + " /"
+
+    public void imprimirCoisasCarro() {
+        System.out.println(carro.bancos.size() + " /"
+                + carro.carrocerias.size() + " /"
+                + carro.eletronica.size() + " /"
+                + carro.motores.size() + " /"
+                + carro.pneus.size() + " /"
+                + carro.bancos.size() + " /"
         );
     }
 
